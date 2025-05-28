@@ -13,8 +13,6 @@
     }
     canvas {
       display: block;
-      background: url('angry.jpg') no-repeat center center;
-      background-size: cover;
     }
     #scoreBoard {
       position: absolute;
@@ -47,7 +45,6 @@
       scoreBoard.innerText = `Score: ${score.toFixed(8)}`;
       localStorage.setItem('angryScore', score.toFixed(8));
     }
-
     updateScore();
 
     const { Engine, Render, Runner, World, Bodies, Body, Events, Constraint, Mouse, MouseConstraint } = Matter;
@@ -62,7 +59,7 @@
         width: window.innerWidth,
         height: window.innerHeight,
         wireframes: false,
-        background: 'transparent'
+        background: 'angry.jpg' // ✅ THIS is the fix
       }
     });
 
