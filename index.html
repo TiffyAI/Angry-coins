@@ -1,16 +1,116 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TiffyAI Angry Birds</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Angry TiffyAI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+      background: url('angry.jpg') no-repeat center center;
+      background-size: cover;
+    }
+  </style>
 </head>
 <body>
   <canvas id="gameCanvas"></canvas>
 
-  <!-- Matter.js Physics Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-  <script src="game.js"></script>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const { Engine, Render, Runner, World, Bodies, Body, Events, Constraint, Mouse, MouseConstraint } = Matter;
+
+    const engine = Engine.create();
+    const world = engine.world;
+
+    const render = Render.create({
+      canvas: canvas,
+      engine: engine,
+      options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: 'transparent'
+      }
+    });
+
+    Render.run(render);
+    const runner = Runner.create();
+    Runner.run(runner, engine);
+
+    const ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight - 20, window.innerWidth, 40, { isStatic: true });
+    World.add(world, ground);
+
+    const box = Bodies.rectangle(window.innerWidth - 150, window.innerHeight - 60, 60, 60, {
+      render: {
+        fillStyle: '#f0f'
+      }
+    });
+    World.add(world, box);
+
+    const tiffy = Bodies.circle(200, window.innerHeight - 100, 30, {
+      density: 0.004,
+      restitution: 0.8,
+      render: {
+        sprite: {
+          texture: 'TiffyAI-Token.png',
+          xScale: 0.15,
+          yScale: 0.15
+        }
+      }
+    });
+    World.add(world, tiffy);
+
+    const sling = Constraint.create({
+      pointA: { x: 200, y: window.innerHeight - 100 },
+      bodyB: tiffy,
+      stiffness: 0.05,
+      render: {
+        strokeStyle: '#0ff'
+      }
+    });
+    World.add(world, sling);
+
+    const mouse = Mouse.create(render.canvas);
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: {
+        stiffness: 0.1,
+        render: {
+          visible: false
+        }
+      }
+    });
+    World.add(world, mouseConstraint);
+    render.mouse = mouse;
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: window.innerWidth, y: window.innerHeight }
+      });
+    });
+
+    Events.on(mouseConstraint, "enddrag", function(event) {
+      if (event.body === tiffy) {
+        setTimeout(() => {
+          Body.setPosition(tiffy, { x: 200, y: window.innerHeight - 100 });
+          Body.setVelocity(tiffy, { x: 0, y: 0 });
+          sling.bodyB = tiffy;
+        }, 3000);
+      }
+    });
+  </script>
 </body>
 </html>
