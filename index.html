@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Angry TiffyAI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     html, body {
       margin: 0;
@@ -28,157 +28,152 @@
       border: 2px solid #0ff;
       border-radius: 8px;
       box-shadow: 0 0 10px #0ff;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
+  <div id="scoreBoard">Score: 0.00000000</div>
 
-<canvas id="gameCanvas"></canvas>
-<div id="scoreBoard">Score: 0.00000000</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <script>
+    const { Engine, Render, Runner, World, Bodies, Body, Events, Constraint, Mouse, MouseConstraint } = Matter;
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-<script>
-  const canvas = document.getElementById('gameCanvas');
-  const scoreBoard = document.getElementById('scoreBoard');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+    const engine = Engine.create();
+    const world = engine.world;
 
-  const { Engine, Render, Runner, World, Bodies, Body, Events, Constraint, Mouse, MouseConstraint } = Matter;
-
-  const engine = Engine.create();
-  const world = engine.world;
-
-  const render = Render.create({
-    canvas: canvas,
-    engine: engine,
-    options: {
-      width: window.innerWidth,
-      height: window.innerHeight,
-      wireframes: false,
-      background: 'transparent'
-    }
-  });
-
-  Render.run(render);
-  const runner = Runner.create();
-  Runner.run(runner, engine);
-
-  // Ground
-  const ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight - 10, window.innerWidth, 40, { isStatic: true });
-  World.add(world, ground);
-
-  // Launcher TiffyAI bird
-  let tiffy = Bodies.circle(200, canvas.height - 100, 30, {
-    density: 0.004,
-    restitution: 0.9,
-    render: {
-      sprite: {
-        texture: 'TiffyAI-Token.png',
-        xScale: 0.15,
-        yScale: 0.15
+    const render = Render.create({
+      element: document.body,
+      engine: engine,
+      options: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        wireframes: false,
+        background: 'transparent'
       }
-    }
-  });
-  World.add(world, tiffy);
+    });
 
-  const sling = Constraint.create({
-    pointA: { x: 200, y: canvas.height - 100 },
-    bodyB: tiffy,
-    stiffness: 0.05,
-    render: { strokeStyle: '#0ff' }
-  });
-  World.add(world, sling);
+    Render.run(render);
+    const runner = Runner.create();
+    Runner.run(runner, engine);
 
-  // Targets
-  const targetTextures = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg'];
-  const targets = [];
+    // Ground
+    const ground = Bodies.rectangle(window.innerWidth / 2, window.innerHeight - 10, window.innerWidth, 40, { isStatic: true });
+    World.add(world, ground);
 
-  for (let i = 0; i < 3; i++) {
-    let target = Bodies.circle(canvas.width - 100 - i * 70, canvas.height - 120, 30, {
-      isStatic: false,
-      restitution: 0.6,
+    // Launcher TiffyAI bird
+    let tiffy = Bodies.circle(200, window.innerHeight - 100, 30, {
+      density: 0.004,
+      restitution: 0.9,
       render: {
         sprite: {
-          texture: targetTextures[i],
-          xScale: 0.12,
-          yScale: 0.12
+          texture: 'TiffyAI-Token.png',
+          xScale: 0.15,
+          yScale: 0.15
         }
       }
     });
-    targets.push(target);
-    World.add(world, target);
-  }
+    World.add(world, tiffy);
 
-  // Mouse control
-  const mouse = Mouse.create(render.canvas);
-  const mouseConstraint = MouseConstraint.create(engine, {
-    mouse: mouse,
-    constraint: {
-      stiffness: 0.1,
-      render: { visible: false }
-    }
-  });
-  World.add(world, mouseConstraint);
-  render.mouse = mouse;
+    const sling = Constraint.create({
+      pointA: { x: 200, y: window.innerHeight - 100 },
+      bodyB: tiffy,
+      stiffness: 0.05,
+      render: { strokeStyle: '#0ff' }
+    });
+    World.add(world, sling);
 
-  // Score
-  let score = 0;
-  const rewardPerHit = 0.00050000;
+    // Targets
+    const targetTextures = ['bird1.jpg', 'bird2.jpg', 'bird3.jpg'];
+    const targets = [];
 
-  function updateScoreBoard() {
-    scoreBoard.textContent = 'Score: ' + score.toFixed(8);
-    localStorage.setItem('tiffyAngryScore', score.toFixed(8));
-  }
-
-  Events.on(engine, 'collisionStart', function (event) {
-    const pairs = event.pairs;
-    for (let pair of pairs) {
-      for (let target of targets) {
-        if ((pair.bodyA === tiffy && pair.bodyB === target) || (pair.bodyB === tiffy && pair.bodyA === target)) {
-          score += rewardPerHit;
-          updateScoreBoard();
-          World.remove(world, target);
-        }
-      }
-    }
-  });
-
-  Events.on(mouseConstraint, "enddrag", function(event) {
-    if (event.body === tiffy) {
-      setTimeout(() => {
-        World.remove(world, tiffy);
-        tiffy = Bodies.circle(200, canvas.height - 100, 30, {
-          density: 0.004,
-          restitution: 0.9,
-          render: {
-            sprite: {
-              texture: 'TiffyAI-Token.png',
-              xScale: 0.15,
-              yScale: 0.15
-            }
+    for (let i = 0; i < 3; i++) {
+      let target = Bodies.circle(window.innerWidth - 100 - i * 70, window.innerHeight - 120, 30, {
+        isStatic: false,
+        restitution: 0.6,
+        render: {
+          sprite: {
+            texture: targetTextures[i],
+            xScale: 0.12,
+            yScale: 0.12
           }
-        });
-        World.add(world, tiffy);
-        sling.bodyB = tiffy;
-      }, 3000);
+        }
+      });
+      targets.push(target);
+      World.add(world, target);
     }
-  });
 
-  window.addEventListener('resize', () => {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-    Render.lookAt(render, {
-      min: { x: 0, y: 0 },
-      max: { x: canvas.width, y: canvas.height }
+    // Mouse control
+    const mouse = Mouse.create(render.canvas);
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: {
+        stiffness: 0.1,
+        render: { visible: false }
+      }
     });
-  });
+    World.add(world, mouseConstraint);
+    render.mouse = mouse;
 
-  // Load score if available
-  const savedScore = parseFloat(localStorage.getItem('tiffyAngryScore')) || 0;
-  if (savedScore > 0) {
-    score = savedScore;
-    updateScoreBoard();
-  }
-</script>
+    // Score
+    let score = 0;
+    const rewardPerHit = 0.00050000;
+    const scoreBoard = document.getElementById('scoreBoard');
+
+    function updateScoreBoard() {
+      scoreBoard.textContent = 'Score: ' + score.toFixed(8);
+      localStorage.setItem('tiffyAngryScore', score.toFixed(8));
+    }
+
+    Events.on(engine, 'collisionStart', function (event) {
+      const pairs = event.pairs;
+      for (let pair of pairs) {
+        for (let target of targets) {
+          if ((pair.bodyA === tiffy && pair.bodyB === target) || (pair.bodyB === tiffy && pair.bodyA === target)) {
+            score += rewardPerHit;
+            updateScoreBoard();
+            World.remove(world, target);
+          }
+        }
+      }
+    });
+
+    Events.on(mouseConstraint, "enddrag", function(event) {
+      if (event.body === tiffy) {
+        setTimeout(() => {
+          World.remove(world, tiffy);
+          tiffy = Bodies.circle(200, window.innerHeight - 100, 30, {
+            density: 0.004,
+            restitution: 0.9,
+            render: {
+              sprite: {
+                texture: 'TiffyAI-Token.png',
+                xScale: 0.15,
+                yScale: 0.15
+              }
+            }
+          });
+          World.add(world, tiffy);
+          sling.bodyB = tiffy;
+        }, 3000);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      render.canvas.width = window.innerWidth;
+      render.canvas.height = window.innerHeight;
+      Render.lookAt(render, {
+        min: { x: 0, y: 0 },
+        max: { x: window.innerWidth, y: window.innerHeight }
+      });
+    });
+
+    // Load score if available
+    const savedScore = parseFloat(localStorage.getItem('tiffyAngryScore')) || 0;
+    if (savedScore > 0) {
+      score = savedScore;
+      updateScoreBoard();
+    }
+  </script>
 </body>
 </html>
