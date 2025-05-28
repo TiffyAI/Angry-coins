@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#gameCanvas {
+  display: block;
+  background: url('assets/angry.jpg') no-repeat center center;
+  background-size: cover;
+}
