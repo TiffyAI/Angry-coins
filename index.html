@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="="en">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Angry TiffyAI</title>
@@ -13,9 +13,6 @@
 
     canvas {
       display: block;
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
     }
 
     #scoreBoard {
@@ -50,13 +47,14 @@
 
     const ctx = canvas.getContext('2d');
 
-    // Set backgrounds
     const backgrounds = ['angry.jpg', 'back1.jpg', 'back2.jpg', 'back3.jpg', 'back4.jpg', 'back5.jpg'];
     let currentBackground = 0;
 
-    // Set background image
     function setCanvasBackground(image) {
       canvas.style.backgroundImage = `url('${image}')`;
+      canvas.style.backgroundSize = 'cover';
+      canvas.style.backgroundRepeat = 'no-repeat';
+      canvas.style.backgroundPosition = 'center';
     }
 
     setCanvasBackground(backgrounds[currentBackground]);
@@ -206,7 +204,6 @@
             setCanvasBackground(backgrounds[currentBackground]);
           }
 
-          // Replace hit target
           const newTarget = createTarget(targetTextures[Math.floor(Math.random() * 3)]);
           targets.push(newTarget);
           World.add(world, newTarget);
@@ -214,7 +211,6 @@
       });
     });
 
-    // Count if missed by checking if bird leaves screen
     Events.on(engine, "afterUpdate", function() {
       if (tiffy.position.y > window.innerHeight + 100) {
         misses++;
